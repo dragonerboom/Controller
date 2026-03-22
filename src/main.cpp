@@ -53,6 +53,8 @@ void setup() {
       pinMode(joyIndex[i][v],INPUT);
     }
   }
+  lcd.clear();
+  lcd.print("finished setup");
 }
 
 void loop() {
