@@ -1,13 +1,8 @@
 #include <Arduino.h>
-#include <RF24.h>
-#include <RF24_config.h>
-#include <nRF24L01.h>
-#include <printf.h>
 #include <LiquidCrystal_I2C.h>
 #define x 0
 #define y 1
 //objects:
-RF24 radio (7,8);
 LiquidCrystal_I2C lcd(0x27,20,4);
 //variables:
 struct Payload{
@@ -35,11 +30,6 @@ int get_joy_vals(int stick,int dimension,bool inverted){
 
 
 void setup() {
-  //init radio:
-  radio.begin();
-  radio.openWritingPipe(address);
-  radio.stopListening();
-  radio.setPALevel(RF24_PA_MIN);
   //init screen:
   lcd.init();
   lcd.init();
@@ -67,6 +57,5 @@ void loop() {
   data.direction = atan2(get_joy_vals(0,y,0), get_joy_vals(0,x,0));
   data.spin = map(get_joy_vals(1,y,1), -1, 1,-20,20);
   data.level = map(get_joy_vals(1,x,1), -1, 1, 20, -20);
-  radio.write(&data, sizeof(data));
 
 }
