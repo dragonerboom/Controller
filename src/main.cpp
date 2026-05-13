@@ -1,3 +1,6 @@
+//#include "WString.h"
+#include "esp32-hal.h"
+#include "stdlib_noniso.h"
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
@@ -16,7 +19,10 @@ struct Payload{
 Payload data;
 const byte address[6] = "00001";
 //constants:
-int joyIndex[][2] = {{1,2},{3,4}};
+int joyIndex[][2] = {{5,2},{3,4}};
+int cursorPosX = 0;
+int cursorPosY = 10;
+bool connectionStatus = 0;
 
 int get_joy_vals(int stick,int dimension,bool inverted){
   int val = analogRead(joyIndex[stick][dimension]);
@@ -49,18 +55,27 @@ void loop() {
   //proc joystick vals
   //send joystick vals
   //print thing to screen
-
+  cursorPosY = 10;
+  cursorPosX = 0;
+  screen.clearBuffer();
   data.amplitude = map(get_joy_vals(0,x,0),-1,1,0,35);
   data.direction = atan2(get_joy_vals(0,y,0), get_joy_vals(0,x,0));
   data.spin = map(get_joy_vals(1,y,1), -1, 1,-20,20);
   data.level = map(get_joy_vals(1,x,1), -1, 1, 20, -20);
-  //display sstick info on screen
-  screen.clearBuffer();
-  screen.drawCircle(64, 32, 28);
-  screen.drawLine(64, 32, map(get_joy_vals(0, x, 0),-1,1,64-28,64+28),map(get_joy_vals(0, y, 0),-1,1,64-28,64+28));
-  screen.sendBuffer();
-  //demo text
 
+  cursorPosX += screen.drawStr(0, cursorPosY, "Power");
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, itoa(data.amplitude, "",10));
+  cursorPosY += 10;
+  cursorPosX = 0;
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Direction");
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, itoa(data.direction, "", 10));
+  cursorPosY += 10;
+  cursorPosX = 0;
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Connection:");
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, itoa(connectionStatus, "", 10));
+  screen.sendBuffer();
+  delay(1000);
+  //demo text
   /*
   screen.clearBuffer();
   screen.setCursor(0, 10);                 
