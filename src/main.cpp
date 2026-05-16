@@ -1,6 +1,5 @@
-//#include "WString.h"
+
 #include "esp32-hal.h"
-#include "stdlib_noniso.h"
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <Wire.h>
@@ -19,14 +18,14 @@ struct Payload{
 Payload data;
 const byte address[6] = "00001";
 //constants:
-int joyIndex[][2] = {{5,2},{3,4}};
+int joyIndex[][2] = {{0,1},{2,3}};
 int cursorPosX = 0;
 int cursorPosY = 10;
 bool connectionStatus = 0;
 
 int get_joy_vals(int stick,int dimension,bool inverted){
   int val = analogRead(joyIndex[stick][dimension]);
-  double valProc = map(val,0,4095,-1,1);
+  double valProc = ((double)val / 4095.0) * 2.0 - 1.0; 
   if(inverted){
     return -valProc;
   }
@@ -63,26 +62,16 @@ void loop() {
   data.spin = map(get_joy_vals(1,y,1), -1, 1,-20,20);
   data.level = map(get_joy_vals(1,x,1), -1, 1, 20, -20);
 
-  cursorPosX += screen.drawStr(0, cursorPosY, "Power");
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, itoa(data.amplitude, "",10));
+  cursorPosX += screen.drawStr(0, cursorPosY, "Power: ");
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, String((int)data.amplitude).c_str());
   cursorPosY += 10;
   cursorPosX = 0;
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Direction");
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, itoa(data.direction, "", 10));
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Direction: ");
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, String((int)data.direction).c_str());
   cursorPosY += 10;
   cursorPosX = 0;
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Connection:");
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, itoa(connectionStatus, "", 10));
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Connection: ");
+  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, String((int)connectionStatus).c_str());
   screen.sendBuffer();
   delay(1000);
-  //demo text
-  /*
-  screen.clearBuffer();
-  screen.setCursor(0, 10);                 
-  screen.print("I WORK !!!!");
-  screen.setCursor(0,19);
-  screen.print(":D");
-  screen.sendBuffer();
-  delay(1000);
-  */
 }
