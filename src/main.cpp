@@ -1,14 +1,13 @@
-
 #include "esp32-hal.h"
 #include <Arduino.h>
-#include <U8g2lib.h>
+#include <TFT_eSPI.h>
 #include <Wire.h>
+#include <cmath>
 #include <esp_now.h>
 #include <WiFi.h>
 #define x 0
 #define y 1
 //objects:
-U8G2_SH1106_128X64_NONAME_F_HW_I2C screen(U8G2_R0, U8X8_PIN_NONE);
 esp_now_peer_info_t peerInfo;
 //variables:
 struct Payload{
@@ -45,9 +44,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 
 void setup() {
   //init screen:
-  screen.begin();
-  screen.setFont(u8g2_font_t0_11_tr);
-  screen.setContrast(255);
+  
   //init inputs:
   for(int i = 0; i < 2; i++){
     for(int v = 0; v< 2; v++){
@@ -89,19 +86,7 @@ void loop() {
 
 
   //print stats to screen
-  cursorPosY = 10;
-  cursorPosX = 0;
-  screen.clearBuffer();
-  cursorPosX += screen.drawStr(0, cursorPosY, "Power: ");
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, String((int)data.amplitude).c_str());
-  cursorPosY += 10;
-  cursorPosX = 0;
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Direction: ");
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, String((int)data.direction).c_str());
-  cursorPosY += 10;
-  cursorPosX = 0;
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, "Connection: ");
-  cursorPosX += screen.drawStr(cursorPosX, cursorPosY, String((int)connectionStatus).c_str());
-  screen.sendBuffer();
+  
+  
   delay(1000);
 }
