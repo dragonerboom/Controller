@@ -2,14 +2,16 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <Wire.h>
+#include <Adafruit_ADS1X15.h>
 #include <cmath>
 #include <esp_now.h>
 #include <WiFi.h>
 #define x 0
 #define y 1
-//objects:
+//##################################OBJECTS##################################
 esp_now_peer_info_t peerInfo;
-//variables:
+Adafruit_ADS1115 ads;
+//##################################PAYLOAD##################################
 struct Payload{
   double amplitude; //0 - 35
   double direction; //direction in angles
@@ -18,24 +20,16 @@ struct Payload{
 
 };
 Payload data;
+//##################################VARIABLES##################################
 const byte address[6] = "00001";
 uint8_t receiverAddress[] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
-//constants:
-int joyIndex[][2] = {{0,1},{2,3}};
-int cursorPosX = 0;
-int cursorPosY = 10;
 bool connectionStatus = 0;
-//functions
-int get_joy_vals(int stick,int dimension,bool inverted){
-  int val = analogRead(joyIndex[stick][dimension]);
-  double valProc = ((double)val / 4095.0) * 2.0 - 1.0; 
-  if(inverted){
-    return -valProc;
-  }
-  else{
-    return valProc;
-  }
-}
+double stickAX;
+double stickAY;
+double stickBX;
+double stickBY;
+
+
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
   Serial.print("\r\nLast Packet Send Status:\t");
   Serial.println(status == ESP_NOW_SEND_SUCCESS ? "Delivery Success" : "Delivery Fail");
@@ -66,22 +60,23 @@ void setup() {
     Serial.println("Failed to add peer");
     return;
   }
+  //init ads
+  ads.begin()
+  ads.setGain(GAIN_TWOTHIRDS);
 }
 
 void loop() {
-  //get joystick vals 
-  //proc joystick vals
-  //send joystick vals
-  //print thing to screen
-  
 
-  //pass joystick values to pack
-  data.amplitude = map(get_joy_vals(0,x,0),-1,1,0,35);
-  data.direction = atan2(get_joy_vals(0,y,0), get_joy_vals(0,x,0));
-  data.spin = map(get_joy_vals(1,y,1), -1, 1,-20,20);
-  data.level = map(get_joy_vals(1,x,1), -1, 1, 20, -20);
+  stickAX = map(ads.readADC_SingleEnded(0),0,26400,-1,1);
+  stickAY = map(ads.readADC_SingleEnded(1),0,26400,-1,1);
+  stickBX = map(ads.readADC_SingleEnded(2),0,26400,-1,1);
+  stickBY = map(ads.readADC_SingleEnded(3),0,26400,-1,1);
 
-  //send pack via esp now
+  data.amplitude = stickAX;
+  data.direction = atan2(stickAY, stickAX);
+  data.spin = stickBY; 
+  data.level= stickBX;
+
   esp_now_send(receiverAddress, (uint8_t *) &data, sizeof(data));
 
 
